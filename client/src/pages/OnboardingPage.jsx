@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   User,
-  Phone,
+  Lock,
   MapPin,
   GraduationCap,
   Sparkles,
@@ -11,28 +11,28 @@ import {
   CheckCircle,
   ArrowRight,
   Plus,
+  BookOpen,
+  Code,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const SUGGESTED_SKILLS = [
+const REAL_SKILLS = [
+  'Frontend',
+  'Backend',
+  'Full-Stack',
+  'Machine Learning (ML)',
+  'Artificial Intelligence (AI)',
+  'Data Science',
+  'DevOps & Cloud',
+  'Cybersecurity',
+  'UI/UX Design',
+  'Mobile App Development',
+  'IoT & Embedded Systems',
+  'Blockchain / Web3',
   'React',
   'Node.js',
-  'MongoDB',
-  'Express',
   'Python',
-  'TypeScript',
-  'Machine Learning',
-  'Tailwind CSS',
-  'Next.js',
   'Docker',
-  'UI/UX Design',
-  'Figma',
-  'Java',
-  'C++',
-  'Rust',
-  'AWS',
-  'Cybersecurity',
-  'Flutter',
 ];
 
 const PRESET_AVATARS = [
@@ -45,18 +45,21 @@ const PRESET_AVATARS = [
 ];
 
 export const OnboardingPage = ({ onComplete }) => {
-  const { pendingEmail, user, completeOnboarding, loading } = useAuth();
+  const { pendingEmail, pendingPassword, user, completeOnboarding, loading } = useAuth();
 
   const [name, setName] = useState(user?.name || '');
   const [email] = useState(user?.email || pendingEmail || '');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [password, setPassword] = useState(user?.password || pendingPassword || '');
+  const [branch, setBranch] = useState(user?.branch || 'CSE');
   const [address, setAddress] = useState(user?.address || '');
   const [college, setCollege] = useState(user?.college || '');
   const [headline, setHeadline] = useState(
-    user?.headline || 'Computer Science Student | Passionate Developer'
+    user?.headline || `${user?.branch || 'CSE'} Student | Passionate Developer`
   );
   const [bio, setBio] = useState(user?.bio || '');
-  const [skills, setSkills] = useState(user?.skills || ['React', 'JavaScript']);
+  const [skills, setSkills] = useState(
+    user?.skills && user.skills.length > 0 ? user.skills : ['Frontend', 'Backend']
+  );
   const [skillInput, setSkillInput] = useState('');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
@@ -112,8 +115,12 @@ export const OnboardingPage = ({ onComplete }) => {
       setError('Please enter your college / university name.');
       return;
     }
+    if (!branch) {
+      setError('Please select your engineering branch.');
+      return;
+    }
     if (skills.length === 0) {
-      setError('Please add at least one skill.');
+      setError('Please add at least one real technical skill (e.g. Frontend, Backend, ML).');
       return;
     }
 
@@ -124,13 +131,14 @@ export const OnboardingPage = ({ onComplete }) => {
 
       await completeOnboarding({
         email,
+        password: password || 'password123',
         name: name.trim(),
-        phone: phone.trim(),
+        branch,
         address: address.trim(),
         college: college.trim(),
         skills,
         avatar: defaultAvatar,
-        headline: headline.trim(),
+        headline: headline.trim() || `${branch} Student @ ${college.trim()} | Building Projects`,
         bio: bio.trim(),
       });
 
@@ -146,11 +154,11 @@ export const OnboardingPage = ({ onComplete }) => {
       <div className="max-w-2xl mx-auto">
         {/* Header Branding */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="w-8 h-8 rounded-md bg-[#0a66c2] flex items-center justify-center text-white font-bold text-lg">
-            in
+          <div className="w-8 h-8 rounded-md bg-[#0a66c2] flex items-center justify-center text-white font-bold text-base tracking-tighter shadow-xs">
+            HM
           </div>
           <span className="font-bold text-gray-900 text-xl tracking-tight">
-            Student<span className="text-[#0a66c2]">Nexus</span>
+            Hack<span className="text-[#0a66c2]">Mate</span>
           </span>
         </div>
 
@@ -158,10 +166,10 @@ export const OnboardingPage = ({ onComplete }) => {
         <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-sm">
           <div className="border-b border-gray-100 pb-4 mb-6">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Build Your Student Profile
+              Build Your HackMate Profile
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-1">
-              Showcase your technical skills, college background, and connect with peers for hackathons.
+              Select your branch (CSE, ECE, MECH, EEE, CIVIL), highlight your real technical skills (Frontend, Backend, ML), and start teaming up!
             </p>
           </div>
 
@@ -175,7 +183,7 @@ export const OnboardingPage = ({ onComplete }) => {
             {/* 1. Optional Photo Upload */}
             <div>
               <label className="block text-xs font-bold uppercase text-gray-700 tracking-wider mb-2">
-                Student Photo <span className="text-gray-400 font-normal lowercase">(optional)</span>
+                Profile Photo <span className="text-gray-400 font-normal lowercase">(optional)</span>
               </label>
 
               <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-300">
@@ -240,7 +248,7 @@ export const OnboardingPage = ({ onComplete }) => {
               </div>
             </div>
 
-            {/* 2. Basic Info (Name, Email) */}
+            {/* 2. Basic Info (Name, Email, Password) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -274,23 +282,86 @@ export const OnboardingPage = ({ onComplete }) => {
               </div>
             </div>
 
-            {/* 3. Phone Number & Address */}
+            {/* Password & Branch Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Phone Number
+                  Account Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                    <Phone className="w-4 h-4" />
+                    <Lock className="w-4 h-4" />
                   </div>
                   <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="e.g. +1 (555) 019-2834"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
                     className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-hidden focus:border-[#0a66c2] focus:ring-1 focus:ring-[#0a66c2]"
                   />
+                </div>
+              </div>
+
+              {/* Branch Dropdown */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Engineering Branch <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={branch}
+                    onChange={(e) => {
+                      setBranch(e.target.value);
+                      if (!headline || headline.includes('Student')) {
+                        setHeadline(`${e.target.value} Student @ ${college || 'University'} | Passionate Developer`);
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 bg-white rounded-lg text-sm font-semibold text-gray-900 focus:outline-hidden focus:border-[#0a66c2] focus:ring-1 focus:ring-[#0a66c2]"
+                  >
+                    <option value="CSE">CSE — Computer Science & Engineering</option>
+                    <option value="ECE">ECE — Electronics & Communication Engineering</option>
+                    <option value="MECH">MECH — Mechanical Engineering</option>
+                    <option value="EEE">EEE — Electrical & Electronics Engineering</option>
+                    <option value="CIVIL">CIVIL — Civil Engineering</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. College Name & Campus Address */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  College / University Name <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <GraduationCap className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={college}
+                    onChange={(e) => setCollege(e.target.value)}
+                    placeholder="e.g. New York University (NYU)"
+                    className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-hidden focus:border-[#0a66c2] focus:ring-1 focus:ring-[#0a66c2]"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[11px] text-gray-400">Suggestions:</span>
+                  {['NYU', 'Columbia University', 'Cornell Tech', 'Stevens Tech', 'Rutgers'].map(
+                    (col) => (
+                      <button
+                        key={col}
+                        type="button"
+                        onClick={() => setCollege(col)}
+                        className="text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded-sm cursor-pointer"
+                      >
+                        {col}
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
 
@@ -313,88 +384,56 @@ export const OnboardingPage = ({ onComplete }) => {
               </div>
             </div>
 
-            {/* 4. College Name */}
+            {/* 4. Professional Headline & Bio */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                College / University Name <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  <GraduationCap className="w-4 h-4" />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={college}
-                  onChange={(e) => setCollege(e.target.value)}
-                  placeholder="e.g. New York University (NYU)"
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-hidden focus:border-[#0a66c2] focus:ring-1 focus:ring-[#0a66c2]"
-                />
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                <span className="text-[11px] text-gray-400">Suggestions:</span>
-                {['NYU', 'Columbia University', 'Cornell Tech', 'Stevens Tech', 'Rutgers'].map(
-                  (col) => (
-                    <button
-                      key={col}
-                      type="button"
-                      onClick={() => setCollege(col)}
-                      className="text-[10px] bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded-sm cursor-pointer"
-                    >
-                      {col}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* 5. Professional Headline & Bio */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Headline / Specialization
+                Headline / Focus Area
               </label>
               <input
                 type="text"
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
-                placeholder="e.g. Full-Stack Developer | Passionate about AI & Distributed Systems"
+                placeholder="e.g. CSE Sophomore @ NYU | Frontend & Machine Learning Enthusiast"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-hidden focus:border-[#0a66c2] focus:ring-1 focus:ring-[#0a66c2]"
               />
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Short Bio / Collaboration Goals
+                Short Bio / Hackathon Goals
               </label>
               <textarea
                 rows={2}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell other students what you are building or looking to collaborate on..."
+                placeholder="Tell teammates what you love building or what hackathons you want to win together..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-900 focus:outline-hidden focus:border-[#0a66c2] focus:ring-1 focus:ring-[#0a66c2]"
               />
             </div>
 
-            {/* 6. Respective Skills (Interactive Chips) */}
+            {/* 5. Real Skills Place to Enter (Frontend, Backend, ML, etc.) */}
             <div className="bg-blue-50/40 p-4 rounded-xl border border-blue-100">
               <label className="block text-xs font-bold uppercase text-gray-800 tracking-wider mb-1 flex items-center justify-between">
-                <span>Respective Skills <span className="text-red-500">*</span></span>
+                <span className="flex items-center gap-1.5">
+                  <Code className="w-4 h-4 text-[#0a66c2]" />
+                  <span>Real Technical Skills (Frontend, Backend, ML, etc.) <span className="text-red-500">*</span></span>
+                </span>
                 <span className="text-[11px] font-normal text-gray-500">
-                  {skills.length} added
+                  {skills.length} selected
                 </span>
               </label>
               <p className="text-[11px] text-gray-500 mb-3">
-                Add your technical strengths so other students can discover and like your profile.
+                Select your core development domains so other students can discover and team up with you for hackathons.
               </p>
 
-              {/* Tag Input */}
+              {/* Tag Input for Custom Skills */}
               <div className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value={skillInput}
                   onChange={(e) => setSkillInput(e.target.value)}
                   onKeyDown={handleSkillKeyDown}
-                  placeholder="Type a skill (e.g. React, Python) and press Enter"
+                  placeholder="Type a skill (e.g. Frontend, Backend, ML, UI/UX) and press Enter"
                   className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm text-gray-900 focus:outline-hidden focus:border-[#0a66c2]"
                 />
                 <button
@@ -426,13 +465,13 @@ export const OnboardingPage = ({ onComplete }) => {
                 ))}
               </div>
 
-              {/* Popular Suggestion Pills */}
+              {/* Core Real Skill Options to Click and Add */}
               <div>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider block mb-1.5">
-                  Popular Skills to click and add:
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
+                  Click to add Real Skills:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
-                  {SUGGESTED_SKILLS.map((suggested) => {
+                  {REAL_SKILLS.map((suggested) => {
                     const isAdded = skills.some(
                       (s) => s.toLowerCase() === suggested.toLowerCase()
                     );
@@ -442,13 +481,14 @@ export const OnboardingPage = ({ onComplete }) => {
                         type="button"
                         disabled={isAdded}
                         onClick={() => addSkill(suggested)}
-                        className={`text-xs px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
+                        className={`text-xs px-2.5 py-1 rounded-md transition-colors cursor-pointer font-medium ${
                           isAdded
-                            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : 'bg-white hover:bg-blue-100 text-gray-700 border border-gray-300 hover:border-[#0a66c2]'
+                            ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                            : 'bg-white hover:bg-blue-50 text-gray-700 border border-gray-300 hover:border-[#0a66c2]'
                         }`}
                       >
-                        + {suggested}
+                        {isAdded ? '✓ ' : '+ '}
+                        {suggested}
                       </button>
                     );
                   })}
@@ -467,7 +507,7 @@ export const OnboardingPage = ({ onComplete }) => {
                   'Saving Profile...'
                 ) : (
                   <>
-                    <span>Save & Enter StudentNexus</span>
+                    <span>Save & Enter HackMate</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

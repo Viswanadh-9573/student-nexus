@@ -3,25 +3,49 @@ import {
   ThumbsUp,
   MapPin,
   GraduationCap,
-  MessageCircle,
-  Share2,
-  Phone,
-  Mail,
+  MessageSquare,
+  UserPlus,
+  Check,
+  Clock,
   CheckCircle2,
   Sparkles,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
+const BRANCH_COLORS = {
+  CSE: 'bg-purple-50 text-purple-700 border-purple-200',
+  ECE: 'bg-blue-50 text-blue-700 border-blue-200',
+  MECH: 'bg-amber-50 text-amber-800 border-amber-200',
+  EEE: 'bg-yellow-50 text-yellow-800 border-yellow-200',
+  CIVIL: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+};
+
 export const StudentCard = ({
   student,
-  currentEmail,
+  currentUser,
   onToggleLike,
   onSelectSkill,
-  onOpenConnect,
+  onSelectBranch,
+  onOpenChat,
+  onSendConnectionRequest,
 }) => {
   const [isLiking, setIsLiking] = useState(false);
+  const [connecting, setConnecting] = useState(false);
+
+  const currentEmail = currentUser?.email || '';
+  const isMe = currentEmail && student.email?.toLowerCase() === currentEmail.toLowerCase();
+
   const isLikedByMe =
     student.likedBy && currentEmail ? student.likedBy.includes(currentEmail) : false;
+
+  // Connection status checks
+  const isConnected =
+    (student.connections && student.connections.includes(currentEmail)) ||
+    (currentUser?.connections && currentUser.connections.includes(student.email));
+
+  const isRequestPending =
+    (student.pendingRequests && student.pendingRequests.includes(currentEmail)) ||
+    (currentUser?.sentRequests && currentUser.sentRequests.includes(student.email));
 
   const handleLikeClick = async () => {
     if (isLiking) return;
@@ -29,7 +53,6 @@ export const StudentCard = ({
 
     try {
       if (!isLikedByMe) {
-        // Trigger small burst of celebratory confetti
         confetti({
           particleCount: 25,
           spread: 60,
@@ -42,6 +65,20 @@ export const StudentCard = ({
       setIsLiking(false);
     }
   };
+
+  const handleConnectClick = async () => {
+    if (connecting || isConnected || isRequestPending || isMe) return;
+    setConnecting(true);
+    try {
+      await onSendConnectionRequest(student._id);
+    } finally {
+      setConnecting(false);
+    }
+  };
+
+  const branchBadgeClass =
+    BRANCH_COLORS[student.branch?.toUpperCase()] ||
+    'bg-gray-100 text-gray-700 border-gray-200';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs hover:shadow-md transition-shadow">
@@ -64,14 +101,27 @@ export const StudentCard = ({
                 <h3 className="font-bold text-gray-900 text-base hover:text-[#0a66c2] hover:underline cursor-pointer">
                   {student.name}
                 </h3>
-                <span className="inline-flex items-center text-[11px] bg-green-50 text-green-700 px-1.5 py-0.2 rounded-full font-medium">
+
+                {/* Branch Badge (CSE, ECE, MECH, EEE, CIVIL) */}
+                {student.branch && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectBranch && onSelectBranch(student.branch)}
+                    className={`inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-sm border cursor-pointer hover:opacity-80 transition-opacity ${branchBadgeClass}`}
+                    title={`Filter by ${student.branch}`}
+                  >
+                    {student.branch}
+                  </button>
+                )}
+
+                <span className="inline-flex items-center text-[10px] bg-green-50 text-green-700 px-1.5 py-0.2 rounded-full font-medium">
                   <CheckCircle2 className="w-3 h-3 mr-0.5" />
-                  Verified Student
+                  Verified
                 </span>
               </div>
 
               <p className="text-xs text-gray-700 font-normal mt-0.5 line-clamp-2">
-                {student.headline || `Student at ${student.college}`}
+                {student.headline || `${student.branch || 'Student'} at ${student.college}`}
               </p>
 
               <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 flex-wrap">
@@ -90,14 +140,50 @@ export const StudentCard = ({
             </div>
           </div>
 
-          {/* Quick Connect Button */}
-          <button
-            onClick={() => onOpenConnect(student)}
-            className="hidden sm:flex items-center gap-1 text-xs font-semibold text-[#0a66c2] hover:bg-blue-50 border border-[#0a66c2] px-3.5 py-1.5 rounded-full transition-colors cursor-pointer shrink-0"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            Connect
-          </button>
+          {/* Connect & Chat Action Buttons */}
+          {!isMe && (
+            <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+              {/* Connect Request Button */}
+              <button
+                onClick={handleConnectClick}
+                disabled={connecting || isConnected || isRequestPending}
+                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors cursor-pointer ${
+                  isConnected
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default'
+                    : isRequestPending
+                    ? 'bg-amber-50 text-amber-700 border border-amber-200 cursor-default'
+                    : 'text-[#0a66c2] hover:bg-blue-50 border border-[#0a66c2]'
+                }`}
+              >
+                {isConnected ? (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Connected</span>
+                  </>
+                ) : isRequestPending ? (
+                  <>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Pending</span>
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>Connect</span>
+                  </>
+                )}
+              </button>
+
+              {/* Chat Direct Message Button */}
+              <button
+                onClick={() => onOpenChat(student)}
+                className="flex items-center gap-1.5 text-xs font-semibold bg-[#0a66c2] hover:bg-[#004182] text-white px-3.5 py-1.5 rounded-full shadow-xs transition-colors cursor-pointer"
+                title={`Chat with ${student.name}`}
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Chat</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Bio / Description */}
@@ -107,12 +193,12 @@ export const StudentCard = ({
           </p>
         )}
 
-        {/* Skills Section */}
+        {/* Real Skills Section */}
         <div className="mt-4">
           <div className="flex items-center gap-1.5 mb-2">
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-              Showcased Skills:
+              Real Skills (Frontend, Backend, ML, etc.):
             </span>
           </div>
 
@@ -122,7 +208,7 @@ export const StudentCard = ({
                 <button
                   key={idx}
                   onClick={() => onSelectSkill && onSelectSkill(skill)}
-                  className="inline-flex items-center text-xs bg-gray-100 hover:bg-[#0a66c2]/10 text-gray-800 hover:text-[#0a66c2] font-medium px-2.5 py-1 rounded-md transition-colors cursor-pointer border border-transparent hover:border-[#0a66c2]/30"
+                  className="inline-flex items-center text-xs bg-blue-50/70 hover:bg-[#0a66c2] text-gray-800 hover:text-white font-medium px-2.5 py-1 rounded-md transition-all cursor-pointer border border-blue-200/60"
                   title={`Filter by ${skill}`}
                 >
                   {skill}
@@ -148,14 +234,26 @@ export const StudentCard = ({
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Mobile connect button */}
-          <button
-            onClick={() => onOpenConnect(student)}
-            className="sm:hidden flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-[#0a66c2] px-2 py-1 rounded-md"
-          >
-            <MessageCircle className="w-3.5 h-3.5" />
-            Contact
-          </button>
+          {/* Mobile Connect & Chat buttons */}
+          {!isMe && (
+            <div className="sm:hidden flex items-center gap-1">
+              <button
+                onClick={handleConnectClick}
+                disabled={isConnected || isRequestPending}
+                className="text-xs font-medium text-gray-600 hover:text-[#0a66c2] px-2 py-1 rounded-md"
+              >
+                {isConnected ? 'Connected' : isRequestPending ? 'Pending' : '+ Connect'}
+              </button>
+
+              <button
+                onClick={() => onOpenChat(student)}
+                className="flex items-center gap-1 text-xs font-semibold text-[#0a66c2] bg-blue-50 px-2.5 py-1 rounded-full"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                Chat
+              </button>
+            </div>
+          )}
 
           {/* Interactive Like Button */}
           <button

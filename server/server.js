@@ -23,7 +23,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Try MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/student_nexus';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/hackmate';
 
 async function initDatabase() {
   try {
@@ -32,11 +32,11 @@ async function initDatabase() {
     });
     isMongoConnected = true;
     console.log(`✅ MongoDB Connected successfully to: ${conn.connection.host}`);
-    
+
     // Seed initial data if database is empty
     const count = await User.countDocuments();
     if (count === 0) {
-      console.log('🌱 Seeding MongoDB with initial student and hackathon profiles...');
+      console.log('🌱 Seeding MongoDB with initial HackMate profiles...');
       for (const student of fallbackStore.data.students) {
         const { _id, ...studentData } = student;
         await User.create(studentData);
@@ -50,7 +50,7 @@ async function initDatabase() {
   } catch (err) {
     isMongoConnected = false;
     console.log('ℹ️ MongoDB not found locally or connection timed out.');
-    console.log('⚡ Active mode: High-performance JSON/In-Memory fallback store enabled (All features working!).');
+    console.log('⚡ Active mode: High-performance JSON/In-Memory fallback store enabled for HackMate.');
   }
 }
 
@@ -61,9 +61,12 @@ initDatabase();
 // 1. Auth & Onboarding Routes
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, password } = req.body;
     if (!email || !email.trim()) {
       return res.status(400).json({ error: 'Valid email is required' });
+    }
+    if (!password || !password.trim()) {
+      return res.status(400).json({ error: 'Password is required' });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -71,13 +74,19 @@ app.post('/api/auth/login', async (req, res) => {
     if (isMongoConnected) {
       const user = await User.findOne({ email: cleanEmail });
       if (!user) {
-        return res.json({ isNewUser: true, email: cleanEmail });
+        return res.json({ isNewUser: true, email: cleanEmail, password });
+      }
+      if (user.password && user.password !== password) {
+        return res.status(401).json({ error: 'Invalid password. Please check your credentials.' });
       }
       return res.json({ isNewUser: false, user });
     } else {
       const user = fallbackStore.getStudentByEmail(cleanEmail);
       if (!user) {
-        return res.json({ isNewUser: true, email: cleanEmail });
+        return res.json({ isNewUser: true, email: cleanEmail, password });
+      }
+      if (user.password && user.password !== password) {
+        return res.status(401).json({ error: 'Invalid password. Please check your credentials.' });
       }
       return res.json({ isNewUser: false, user });
     }
@@ -89,7 +98,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/onboarding', async (req, res) => {
   try {
-    const { email, name, phone, address, college, skills, avatar, headline, bio } = req.body;
+    const { email, password, name, address, college, branch, skills, avatar, headline, bio } = req.body;
 
     if (!email || !name || !college) {
       return res.status(400).json({ error: 'Name, email, and college are required' });
@@ -102,15 +111,21 @@ app.post('/api/auth/onboarding', async (req, res) => {
       ? skills.split(',').map((s) => s.trim()).filter(Boolean)
       : [];
 
+    const validBranches = ['CSE', 'ECE', 'MECH', 'EEE', 'CIVIL'];
+    const chosenBranch = validBranches.includes((branch || '').toUpperCase())
+      ? (branch || '').toUpperCase()
+      : 'CSE';
+
     const profileData = {
       email: cleanEmail,
+      password: password || 'password123',
       name: name.trim(),
-      phone: (phone || '').trim(),
       address: (address || '').trim(),
       college: college.trim(),
+      branch: chosenBranch,
       skills: skillsList,
       avatar: avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`,
-      headline: headline || `Student @ ${college.trim()} | Exploring Opportunities`,
+      headline: headline || `${chosenBranch} Student @ ${college.trim()} | Exploring Opportunities`,
       bio: bio || '',
     };
 
@@ -120,7 +135,14 @@ app.post('/api/auth/onboarding', async (req, res) => {
         Object.assign(user, profileData);
         await user.save();
       } else {
-        user = await User.create({ ...profileData, likesCount: 0, likedBy: [] });
+        user = await User.create({
+          ...profileData,
+          likesCount: 0,
+          likedBy: [],
+          connections: [],
+          pendingRequests: [],
+          sentRequests: [],
+        });
       }
       return res.status(201).json({ success: true, user });
     } else {
@@ -133,10 +155,10 @@ app.post('/api/auth/onboarding', async (req, res) => {
   }
 });
 
-// 2. Student Profiles Feed
+// 2. Student Profiles Feed (supports q, skill, college, branch)
 app.get('/api/students', async (req, res) => {
   try {
-    const { q, skill, college } = req.query;
+    const { q, skill, college, branch } = req.query;
 
     if (isMongoConnected) {
       const filter = {};
@@ -144,6 +166,7 @@ app.get('/api/students', async (req, res) => {
         filter.$or = [
           { name: { $regex: q, $options: 'i' } },
           { college: { $regex: q, $options: 'i' } },
+          { branch: { $regex: q, $options: 'i' } },
           { headline: { $regex: q, $options: 'i' } },
           { skills: { $regex: q, $options: 'i' } },
         ];
@@ -154,11 +177,14 @@ app.get('/api/students', async (req, res) => {
       if (college && college !== 'all') {
         filter.college = { $regex: college, $options: 'i' };
       }
+      if (branch && branch !== 'all') {
+        filter.branch = branch.toUpperCase();
+      }
 
       const students = await User.find(filter).sort({ createdAt: -1 });
       return res.json({ students });
     } else {
-      const students = fallbackStore.getStudents(q, skill, college);
+      const students = fallbackStore.getStudents(q, skill, college, branch);
       return res.json({ students });
     }
   } catch (error) {
@@ -211,7 +237,113 @@ app.post('/api/students/:id/like', async (req, res) => {
   }
 });
 
-// 4. Hackathons Route
+// 4. Connection Request Endpoints
+app.post('/api/connections/request', async (req, res) => {
+  try {
+    const { fromEmail, targetStudentId } = req.body;
+    if (!fromEmail || !targetStudentId) {
+      return res.status(400).json({ error: 'fromEmail and targetStudentId are required' });
+    }
+
+    if (isMongoConnected) {
+      const sender = await User.findOne({ email: fromEmail.toLowerCase() });
+      const receiver = await User.findById(targetStudentId);
+
+      if (!sender || !receiver) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (!sender.sentRequests.includes(receiver.email)) {
+        sender.sentRequests.push(receiver.email);
+        await sender.save();
+      }
+      if (!receiver.pendingRequests.includes(sender.email)) {
+        receiver.pendingRequests.push(sender.email);
+        await receiver.save();
+      }
+
+      return res.json({ success: true, status: 'pending', sender, receiver });
+    } else {
+      const result = fallbackStore.sendConnectionRequest(fromEmail, targetStudentId);
+      if (result.error) {
+        return res.status(400).json({ error: result.error });
+      }
+      return res.json({ success: true, status: result.status, sender: result.sender, receiver: result.receiver });
+    }
+  } catch (error) {
+    console.error('Connection request error:', error);
+    res.status(500).json({ error: 'Failed to send connection request' });
+  }
+});
+
+app.post('/api/connections/accept', async (req, res) => {
+  try {
+    const { userEmail, fromEmail } = req.body;
+    if (!userEmail || !fromEmail) {
+      return res.status(400).json({ error: 'userEmail and fromEmail are required' });
+    }
+
+    if (isMongoConnected) {
+      const user = await User.findOne({ email: userEmail.toLowerCase() });
+      const fromUser = await User.findOne({ email: fromEmail.toLowerCase() });
+
+      if (!user || !fromUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      user.pendingRequests = user.pendingRequests.filter((e) => e !== fromEmail);
+      fromUser.sentRequests = fromUser.sentRequests.filter((e) => e !== userEmail);
+
+      if (!user.connections.includes(fromEmail)) user.connections.push(fromEmail);
+      if (!fromUser.connections.includes(userEmail)) fromUser.connections.push(userEmail);
+
+      await user.save();
+      await fromUser.save();
+
+      return res.json({ success: true, user, fromUser });
+    } else {
+      const result = fallbackStore.acceptConnectionRequest(userEmail, fromEmail);
+      if (!result) return res.status(404).json({ error: 'User not found' });
+      return res.json({ success: true, user: result.user, fromUser: result.fromUser });
+    }
+  } catch (error) {
+    console.error('Connection accept error:', error);
+    res.status(500).json({ error: 'Failed to accept connection request' });
+  }
+});
+
+// 5. Chatbox Direct Messages Endpoints
+app.get('/api/messages', async (req, res) => {
+  try {
+    const { user1, user2 } = req.query;
+    if (!user1 || !user2) {
+      return res.status(400).json({ error: 'user1 and user2 query parameters required' });
+    }
+
+    const messages = fallbackStore.getMessages(user1, user2);
+    return res.json({ messages });
+  } catch (error) {
+    console.error('Fetch messages error:', error);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+app.post('/api/messages', async (req, res) => {
+  try {
+    const { senderEmail, receiverEmail, text } = req.body;
+    if (!senderEmail || !receiverEmail || !text) {
+      return res.status(400).json({ error: 'senderEmail, receiverEmail, and text are required' });
+    }
+
+    const message = fallbackStore.sendMessage(senderEmail, receiverEmail, text);
+    return res.status(201).json({ success: true, message });
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// 6. Hackathons Route
 app.get('/api/hackathons', async (req, res) => {
   try {
     const { filter } = req.query;
@@ -269,7 +401,7 @@ app.post('/api/hackathons/:id/register', async (req, res) => {
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
-    appName: 'StudentNexus MERN',
+    appName: 'HackMate MERN',
     mongoConnected: isMongoConnected,
     timestamp: new Date().toISOString(),
   });
@@ -280,18 +412,17 @@ const distPath = path.join(__dirname, '../client/dist');
 app.use(express.static(distPath));
 
 app.get('*', (req, res) => {
-  // If requesting api and not matched, return 404
   if (req.originalUrl.startsWith('/api')) {
     return res.status(404).json({ error: 'API route not found' });
   }
   const indexPath = path.join(distPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
-      res.status(200).send('StudentNexus API Server is running. Frontend build not found yet.');
+      res.status(200).send('HackMate API Server is running. Frontend build not found yet.');
     }
   });
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 StudentNexus Server running at http://localhost:${PORT}`);
+  console.log(`🚀 HackMate Server running at http://localhost:${PORT}`);
 });

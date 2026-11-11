@@ -1,7 +1,7 @@
 {
-  "name": "student-nexus-mern",
+  "name": "hackmate-mern",
   "version": "1.0.0",
-  "description": "StudentNexus - LinkedIn-Themed Collegiate MERN Network with Skill Showcases & Hackathons",
+  "description": "HackMate - LinkedIn-Themed Collegiate MERN Network with Branch Filtering, Real Skills, Direct Chat, and Hackathons",
   "main": "server/server.js",
   "type": "module",
   "scripts": {
@@ -17,6 +17,7 @@
   },
   "keywords": [
     "mern",
+    "hackmate",
     "linkedin-clone",
     "student-portfolio",
     "hackathons",

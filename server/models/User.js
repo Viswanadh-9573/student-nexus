@@ -9,15 +9,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    password: {
+      type: String,
+      default: 'password123',
+    },
     name: {
       type: String,
       required: true,
       trim: true,
-    },
-    phone: {
-      type: String,
-      trim: true,
-      default: '',
     },
     address: {
       type: String,
@@ -28,6 +27,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+    },
+    branch: {
+      type: String,
+      enum: ['CSE', 'ECE', 'MECH', 'EEE', 'CIVIL'],
+      default: 'CSE',
     },
     skills: {
       type: [String],
@@ -50,7 +54,19 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
     likedBy: {
-      type: [String], // Array of user emails or IDs
+      type: [String], // Array of user emails
+      default: [],
+    },
+    connections: {
+      type: [String], // Array of connected user emails
+      default: [],
+    },
+    pendingRequests: {
+      type: [String], // Array of user emails who sent request to this user
+      default: [],
+    },
+    sentRequests: {
+      type: [String], // Array of user emails this user sent request to
       default: [],
     },
   },

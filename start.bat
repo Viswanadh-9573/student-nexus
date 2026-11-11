@@ -2,7 +2,7 @@
 set "PATH=C:\Users\viswanadh\nodejs;%PATH%"
 cd /d "%~dp0"
 echo ========================================================
-echo    Starting StudentNexus (LinkedIn MERN Collegiate Web)
+echo    Starting HackMate (LinkedIn MERN Collegiate Web)
 echo ========================================================
 echo.
 echo Launching server at http://localhost:5000 ...

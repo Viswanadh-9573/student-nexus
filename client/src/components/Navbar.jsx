@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
 import {
   Home,
-  Briefcase,
   Users,
-  Bell,
   Search,
   LogOut,
-  Sparkles,
   Award,
   ChevronDown,
   UserCheck,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,12 +25,12 @@ export const Navbar = ({ onSearch, searchQuery, activeTab, setActiveTab }) => {
               onClick={() => setActiveTab('feed')}
               className="flex items-center gap-2 cursor-pointer select-none group"
             >
-              <div className="w-9 h-9 rounded-md bg-[#0a66c2] flex items-center justify-center text-white font-bold text-xl shadow-xs group-hover:bg-[#004182] transition-colors">
-                in
+              <div className="w-9 h-9 rounded-md bg-[#0a66c2] flex items-center justify-center text-white font-bold text-base tracking-tighter shadow-xs group-hover:bg-[#004182] transition-colors">
+                HM
               </div>
               <div className="hidden sm:block">
                 <span className="font-bold text-gray-900 text-lg leading-tight tracking-tight block">
-                  Student<span className="text-[#0a66c2]">Nexus</span>
+                  Hack<span className="text-[#0a66c2]">Mate</span>
                 </span>
               </div>
             </div>
@@ -46,13 +44,13 @@ export const Navbar = ({ onSearch, searchQuery, activeTab, setActiveTab }) => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearch(e.target.value)}
-                placeholder="Search students, skills, colleges..."
+                placeholder="Search skills, branches (CSE), peers..."
                 className="w-full pl-9 pr-3 py-1.5 bg-[#edf3f8] hover:bg-[#e4ebf1] focus:bg-white text-sm text-gray-800 placeholder-gray-500 rounded-md border border-transparent focus:border-[#0a66c2] focus:outline-hidden transition-all"
               />
               {searchQuery && (
                 <button
                   onClick={() => onSearch('')}
-                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-xs text-gray-400 hover:text-gray-600"
+                  className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-xs text-gray-400 hover:text-gray-600 cursor-pointer"
                 >
                   ✕
                 </button>
@@ -95,7 +93,7 @@ export const Navbar = ({ onSearch, searchQuery, activeTab, setActiveTab }) => {
               }`}
             >
               <Users className="w-5 h-5 mb-0.5" />
-              <span className="hidden sm:inline">Student Directory</span>
+              <span className="hidden sm:inline">Peers</span>
             </button>
 
             {/* Profile Dropdown */}
@@ -139,9 +137,16 @@ export const Navbar = ({ onSearch, searchQuery, activeTab, setActiveTab }) => {
                         className="w-12 h-12 rounded-full object-cover border border-gray-200"
                       />
                       <div className="overflow-hidden">
-                        <p className="font-semibold text-gray-900 text-sm truncate">
-                          {user?.name || 'Student Member'}
-                        </p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="font-semibold text-gray-900 text-sm truncate">
+                            {user?.name || 'HackMate Member'}
+                          </p>
+                          {user?.branch && (
+                            <span className="text-[10px] bg-purple-50 text-purple-700 font-bold px-1.5 py-0.2 rounded-sm border border-purple-200">
+                              {user.branch}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500 truncate">{user?.college}</p>
                         <p className="text-[11px] text-[#0a66c2] truncate font-medium">
                           {user?.email}
@@ -158,7 +163,7 @@ export const Navbar = ({ onSearch, searchQuery, activeTab, setActiveTab }) => {
                         className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                       >
                         <UserCheck className="w-4 h-4 text-gray-500" />
-                        Edit Skills & Profile
+                        Edit Branch & Skills
                       </button>
                       <button
                         onClick={() => {

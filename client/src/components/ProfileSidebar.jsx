@@ -1,11 +1,23 @@
 import React from 'react';
-import { MapPin, GraduationCap, Sparkles, Heart, Phone, Mail, Edit3 } from 'lucide-react';
+import { MapPin, GraduationCap, Heart, Users, Edit3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
+const BRANCH_COLORS = {
+  CSE: 'bg-purple-100 text-purple-700 border-purple-200',
+  ECE: 'bg-blue-100 text-blue-700 border-blue-200',
+  MECH: 'bg-amber-100 text-amber-800 border-amber-200',
+  EEE: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  CIVIL: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+};
 
 export const ProfileSidebar = ({ onEditProfile }) => {
   const { user } = useAuth();
 
   if (!user) return null;
+
+  const branchBadgeClass =
+    BRANCH_COLORS[user.branch?.toUpperCase()] ||
+    'bg-gray-100 text-gray-700 border-gray-200';
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
@@ -27,14 +39,24 @@ export const ProfileSidebar = ({ onEditProfile }) => {
           />
         </div>
 
-        <h3 className="font-bold text-gray-900 text-base leading-tight hover:underline cursor-pointer">
-          {user.name}
-        </h3>
+        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+          <h3 className="font-bold text-gray-900 text-base leading-tight hover:underline cursor-pointer">
+            {user.name}
+          </h3>
+          {user.branch && (
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-sm border ${branchBadgeClass}`}
+            >
+              {user.branch}
+            </span>
+          )}
+        </div>
+
         <p className="text-xs text-gray-600 mt-1 leading-snug line-clamp-2">
-          {user.headline || `Student at ${user.college}`}
+          {user.headline || `${user.branch || 'Student'} at ${user.college}`}
         </p>
 
-        <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-gray-500">
+        <div className="mt-2.5 flex items-center justify-center gap-1.5 text-[11px] text-gray-500">
           <GraduationCap className="w-3.5 h-3.5 text-[#0a66c2]" />
           <span className="truncate max-w-[180px] font-medium">{user.college}</span>
         </div>
@@ -50,8 +72,13 @@ export const ProfileSidebar = ({ onEditProfile }) => {
       {/* Analytics stats */}
       <div className="border-t border-b border-gray-100 py-2.5 px-4 bg-gray-50/50 text-xs">
         <div className="flex justify-between items-center py-1">
-          <span className="text-gray-500 font-medium">Profile Impressions</span>
-          <span className="font-semibold text-[#0a66c2]">184</span>
+          <span className="text-gray-500 font-medium flex items-center gap-1">
+            <Users className="w-3.5 h-3.5 text-[#0a66c2]" />
+            Connections
+          </span>
+          <span className="font-semibold text-[#0a66c2]">
+            {user.connections?.length || 0}
+          </span>
         </div>
         <div className="flex justify-between items-center py-1">
           <span className="text-gray-500 font-medium flex items-center gap-1">
@@ -66,7 +93,7 @@ export const ProfileSidebar = ({ onEditProfile }) => {
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
           <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wider">
-            Your Skills
+            Your Real Skills
           </h4>
           <span className="text-[10px] bg-blue-50 text-[#0a66c2] px-1.5 py-0.5 rounded-full font-medium">
             {user.skills?.length || 0}
@@ -78,7 +105,7 @@ export const ProfileSidebar = ({ onEditProfile }) => {
             user.skills.map((skill, index) => (
               <span
                 key={index}
-                className="text-[11px] bg-blue-50/80 text-[#0a66c2] border border-blue-100 font-medium px-2 py-0.5 rounded-full"
+                className="text-[11px] bg-blue-50 text-[#0a66c2] border border-blue-100 font-medium px-2 py-0.5 rounded-full"
               >
                 {skill}
               </span>
@@ -93,7 +120,7 @@ export const ProfileSidebar = ({ onEditProfile }) => {
           className="mt-4 w-full py-1.5 px-3 rounded-full border border-gray-300 hover:border-gray-400 hover:bg-gray-50 text-xs font-semibold text-gray-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
         >
           <Edit3 className="w-3.5 h-3.5 text-gray-500" />
-          Update Profile & Skills
+          Update Branch & Skills
         </button>
       </div>
     </div>

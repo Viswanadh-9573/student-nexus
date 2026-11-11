@@ -10,77 +10,116 @@ const initialStudents = [
   {
     _id: 'student-1',
     email: 'alex.rivera@nyu.edu',
+    password: 'password123',
     name: 'Alex Rivera',
-    phone: '+1 (555) 234-5678',
     address: 'Greenwich Village, New York, NY',
     college: 'New York University (NYU)',
-    skills: ['React', 'Node.js', 'Express', 'MongoDB', 'TypeScript', 'Tailwind CSS'],
+    branch: 'CSE',
+    skills: ['Frontend', 'Backend', 'Full-Stack', 'React', 'Node.js'],
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-    headline: 'Computer Science Senior @ NYU | Full-Stack MERN Developer & Open Source Contributor',
-    bio: 'Passionate about building scalable distributed web apps and interactive developer tools. Currently looking for summer 2026 software engineering internships!',
+    headline: 'CSE Senior @ NYU | Full-Stack MERN Developer & Hackathon Enthusiast',
+    bio: 'Passionate about building scalable web apps and collaborative developer tools. Looking for teammates for HackNYC 2026!',
     likesCount: 24,
     likedBy: ['priya.sharma@columbia.edu'],
+    connections: ['priya.sharma@columbia.edu'],
+    pendingRequests: [],
+    sentRequests: [],
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
   },
   {
     _id: 'student-2',
     email: 'priya.sharma@columbia.edu',
+    password: 'password123',
     name: 'Priya Sharma',
-    phone: '+1 (555) 876-5432',
     address: 'Morningside Heights, New York, NY',
     college: 'Columbia University',
-    skills: ['Python', 'Machine Learning', 'PyTorch', 'FastAPI', 'Data Science', 'Docker'],
+    branch: 'CSE',
+    skills: ['Machine Learning (ML)', 'Artificial Intelligence (AI)', 'Data Science', 'Backend', 'Python'],
     avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
-    headline: 'AI & Data Science Fellow @ Columbia | NLP & Generative Vision Researcher',
+    headline: 'CSE Fellow @ Columbia | NLP & Generative Vision Researcher',
     bio: 'Researches multimodal LLM alignment and agentic workflows. Built and deployed multiple predictive ML pipelines in production.',
     likesCount: 38,
     likedBy: ['alex.rivera@nyu.edu'],
+    connections: ['alex.rivera@nyu.edu'],
+    pendingRequests: [],
+    sentRequests: [],
     createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
   },
   {
     _id: 'student-3',
     email: 'marcus.chen@cornell.edu',
+    password: 'password123',
     name: 'Marcus Chen',
-    phone: '+1 (555) 432-1098',
     address: 'Roosevelt Island, New York, NY',
     college: 'Cornell Tech',
-    skills: ['UI/UX Design', 'Figma', 'React', 'Next.js', 'Design Systems', 'Framer Motion'],
+    branch: 'ECE',
+    skills: ['Frontend', 'UI/UX Design', 'Full-Stack', 'IoT & Embedded Systems'],
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-    headline: 'Product Designer & Frontend Engineer @ Cornell Tech | Building delightful human-centered web experiences',
-    bio: 'Bridging the gap between sleek Figma prototypes and pixel-perfect production code. Hackathon winner x3.',
+    headline: 'ECE & Product Designer @ Cornell Tech | Building human-centered hardware & web interfaces',
+    bio: 'Bridging the gap between sleek Figma prototypes, embedded IoT, and pixel-perfect production code.',
     likesCount: 19,
     likedBy: [],
+    connections: [],
+    pendingRequests: [],
+    sentRequests: [],
     createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
   },
   {
     _id: 'student-4',
     email: 'sophia.rodriguez@stevens.edu',
+    password: 'password123',
     name: 'Sophia Rodriguez',
-    phone: '+1 (555) 789-0123',
     address: 'Hoboken, NJ',
     college: 'Stevens Institute of Technology',
-    skills: ['DevOps', 'Kubernetes', 'Docker', 'AWS', 'Go', 'CI/CD Pipelines'],
+    branch: 'MECH',
+    skills: ['Backend', 'DevOps & Cloud', 'IoT & Embedded Systems', 'Robotics'],
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
-    headline: 'Cloud Infrastructure & DevOps Enthusiast @ Stevens | AWS Certified Solutions Architect',
-    bio: 'Optimizing container orchestration and infrastructure as code. Passionate about high-availability microservices.',
+    headline: 'MECH Major @ Stevens | Robotics, CAD & Cloud Infrastructure',
+    bio: 'Specializing in automation, autonomous vehicle simulations, and high-availability cloud microservices.',
     likesCount: 15,
     likedBy: [],
+    connections: [],
+    pendingRequests: [],
+    sentRequests: [],
     createdAt: new Date(Date.now() - 86400000 * 8).toISOString(),
   },
   {
     _id: 'student-5',
     email: 'david.kim@rutgers.edu',
+    password: 'password123',
     name: 'David Kim',
-    phone: '+1 (555) 345-6789',
     address: 'New Brunswick, NJ',
     college: 'Rutgers University',
-    skills: ['Cybersecurity', 'Rust', 'Linux Kernel', 'Penetration Testing', 'C++', 'Cryptography'],
+    branch: 'EEE',
+    skills: ['Cybersecurity', 'Backend', 'IoT & Embedded Systems', 'Hardware Systems'],
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-    headline: 'Cybersecurity Analyst & Systems Programmer @ Rutgers | CTF Captain',
-    bio: 'Focusing on zero-trust architectures and memory-safe systems programming in Rust. Regular bug bounty contributor.',
+    headline: 'EEE Major @ Rutgers | Embedded Firmware & Network Security',
+    bio: 'Focusing on smart grid security, microcontroller firmware, and memory-safe systems programming.',
     likesCount: 22,
     likedBy: [],
+    connections: [],
+    pendingRequests: [],
+    sentRequests: [],
     createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+  },
+  {
+    _id: 'student-6',
+    email: 'emily.watson@fordham.edu',
+    password: 'password123',
+    name: 'Emily Watson',
+    address: 'Bronx, NY',
+    college: 'Fordham University',
+    branch: 'CIVIL',
+    skills: ['Frontend', 'Data Science', 'Machine Learning (ML)', 'Smart City Modeling'],
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    headline: 'CIVIL Engineering @ Fordham | Urban Computing & Smart Infrastructure',
+    bio: 'Applying computer vision and spatial ML data analysis to urban infrastructure and sustainable city projects.',
+    likesCount: 17,
+    likedBy: [],
+    connections: [],
+    pendingRequests: [],
+    sentRequests: [],
+    createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
   },
 ];
 
@@ -151,11 +190,36 @@ const initialHackathons = [
   },
 ];
 
+const initialMessages = [
+  {
+    _id: 'msg-1',
+    sender: 'alex.rivera@nyu.edu',
+    receiver: 'priya.sharma@columbia.edu',
+    text: 'Hey Priya! Saw your profile and your ML research background. Are you participating in the upcoming NYC Tech Sprint hackathon?',
+    timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+  },
+  {
+    _id: 'msg-2',
+    sender: 'priya.sharma@columbia.edu',
+    receiver: 'alex.rivera@nyu.edu',
+    text: "Hi Alex! Yes I am! I'm planning to build an AI agent for real-time document reasoning. We need a strong Full-Stack / Frontend dev for the dashboard. Would you be down to team up?",
+    timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    _id: 'msg-3',
+    sender: 'alex.rivera@nyu.edu',
+    receiver: 'priya.sharma@columbia.edu',
+    text: 'That sounds awesome! I can handle the React frontend and Node backend. Let’s connect on GitHub and brainstorm the architecture.',
+    timestamp: new Date(Date.now() - 3600000 * 3).toISOString(),
+  },
+];
+
 class FallbackStore {
   constructor() {
     this.data = {
       students: initialStudents,
       hackathons: initialHackathons,
+      messages: initialMessages,
     };
     this.load();
   }
@@ -164,7 +228,12 @@ class FallbackStore {
     try {
       if (fs.existsSync(STORE_PATH)) {
         const raw = fs.readFileSync(STORE_PATH, 'utf-8');
-        this.data = JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        this.data = {
+          students: parsed.students && parsed.students.length > 0 ? parsed.students : initialStudents,
+          hackathons: parsed.hackathons && parsed.hackathons.length > 0 ? parsed.hackathons : initialHackathons,
+          messages: parsed.messages || initialMessages,
+        };
       } else {
         this.save();
       }
@@ -185,17 +254,19 @@ class FallbackStore {
     }
   }
 
-  getStudents(query = '', skill = '', college = '') {
+  getStudents(query = '', skill = '', college = '', branch = '') {
     return this.data.students.filter((student) => {
       let matchesQuery = true;
       let matchesSkill = true;
       let matchesCollege = true;
+      let matchesBranch = true;
 
       if (query) {
         const q = query.toLowerCase();
         matchesQuery =
           student.name.toLowerCase().includes(q) ||
           student.college.toLowerCase().includes(q) ||
+          (student.branch && student.branch.toLowerCase().includes(q)) ||
           student.headline.toLowerCase().includes(q) ||
           student.skills.some((s) => s.toLowerCase().includes(q));
       }
@@ -212,7 +283,11 @@ class FallbackStore {
           .includes(college.toLowerCase());
       }
 
-      return matchesQuery && matchesSkill && matchesCollege;
+      if (branch && branch !== 'all') {
+        matchesBranch = student.branch && student.branch.toUpperCase() === branch.toUpperCase();
+      }
+
+      return matchesQuery && matchesSkill && matchesCollege && matchesBranch;
     });
   }
 
@@ -245,6 +320,10 @@ class FallbackStore {
         _id: 'student-' + Date.now(),
         likesCount: 0,
         likedBy: [],
+        connections: [],
+        pendingRequests: [],
+        sentRequests: [],
+        branch: studentData.branch || 'CSE',
         createdAt: new Date().toISOString(),
         ...studentData,
       };
@@ -274,6 +353,80 @@ class FallbackStore {
 
     this.save();
     return { student, isLiked };
+  }
+
+  // Connection management
+  sendConnectionRequest(fromEmail, targetStudentId) {
+    const sender = this.getStudentByEmail(fromEmail);
+    const receiver = this.getStudentById(targetStudentId);
+
+    if (!sender || !receiver) return { error: 'Student not found' };
+    if (sender.email === receiver.email) return { error: 'Cannot connect with yourself' };
+
+    if (!sender.sentRequests) sender.sentRequests = [];
+    if (!receiver.pendingRequests) receiver.pendingRequests = [];
+    if (!sender.connections) sender.connections = [];
+
+    // Already connected
+    if (sender.connections.includes(receiver.email)) {
+      return { status: 'connected', sender, receiver };
+    }
+
+    // Toggle/send request
+    if (!sender.sentRequests.includes(receiver.email)) {
+      sender.sentRequests.push(receiver.email);
+    }
+    if (!receiver.pendingRequests.includes(sender.email)) {
+      receiver.pendingRequests.push(sender.email);
+    }
+
+    this.save();
+    return { status: 'pending', sender, receiver };
+  }
+
+  acceptConnectionRequest(userEmail, fromEmail) {
+    const user = this.getStudentByEmail(userEmail);
+    const fromUser = this.getStudentByEmail(fromEmail);
+
+    if (!user || !fromUser) return null;
+
+    user.pendingRequests = (user.pendingRequests || []).filter((e) => e !== fromEmail);
+    fromUser.sentRequests = (fromUser.sentRequests || []).filter((e) => e !== userEmail);
+
+    if (!user.connections.includes(fromEmail)) user.connections.push(fromEmail);
+    if (!fromUser.connections.includes(userEmail)) fromUser.connections.push(userEmail);
+
+    this.save();
+    return { user, fromUser };
+  }
+
+  // Chatbox Messages
+  getMessages(user1Email, user2Email) {
+    const u1 = (user1Email || '').toLowerCase();
+    const u2 = (user2Email || '').toLowerCase();
+
+    return (this.data.messages || []).filter(
+      (m) =>
+        (m.sender.toLowerCase() === u1 && m.receiver.toLowerCase() === u2) ||
+        (m.sender.toLowerCase() === u2 && m.receiver.toLowerCase() === u1)
+    ).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  }
+
+  sendMessage(senderEmail, receiverEmail, text) {
+    if (!text || !text.trim()) return null;
+
+    const newMsg = {
+      _id: 'msg-' + Date.now(),
+      sender: senderEmail.toLowerCase(),
+      receiver: receiverEmail.toLowerCase(),
+      text: text.trim(),
+      timestamp: new Date().toISOString(),
+    };
+
+    if (!this.data.messages) this.data.messages = [];
+    this.data.messages.push(newMsg);
+    this.save();
+    return newMsg;
   }
 
   getHackathons(filter = 'all') {

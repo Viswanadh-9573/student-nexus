@@ -10,6 +10,9 @@ import {
   CheckCircle,
   HelpCircle,
   Flame,
+  Code,
+  Layers,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -17,25 +20,26 @@ import { ProfileSidebar } from '../components/ProfileSidebar';
 import { StudentCard } from '../components/StudentCard';
 import { HackathonSection } from '../components/HackathonSection';
 import { HackathonModal } from '../components/HackathonModal';
-import { ConnectModal } from '../components/ConnectModal';
+import { ChatModal } from '../components/ChatModal';
 
 export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const [students, setStudents] = useState([]);
   const [hackathons, setHackathons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedSkill, setSelectedSkill] = useState('all');
+  const [selectedBranch, setSelectedBranch] = useState('all');
   const [selectedCollege, setSelectedCollege] = useState('all');
 
   // Modals state
   const [selectedHackathon, setSelectedHackathon] = useState(null);
-  const [selectedStudentForConnect, setSelectedStudentForConnect] = useState(null);
+  const [selectedStudentForChat, setSelectedStudentForChat] = useState(null);
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (msg) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Fetch students & hackathons
@@ -47,6 +51,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
           q: searchQuery,
           skill: selectedSkill,
           college: selectedCollege,
+          branch: selectedBranch,
         }),
         api.getHackathons(),
       ]);
@@ -61,7 +66,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
 
   useEffect(() => {
     fetchData();
-  }, [searchQuery, selectedSkill, selectedCollege]);
+  }, [searchQuery, selectedSkill, selectedBranch, selectedCollege]);
 
   // Handle Like / Unlike toggle
   const handleToggleLike = async (studentId) => {
@@ -95,8 +100,26 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
       }
     } catch (err) {
       console.error('Like toggle failed:', err);
-      // Re-fetch on error to ensure sync
       fetchData();
+    }
+  };
+
+  // Handle Send Connection Request
+  const handleSendConnectionRequest = async (studentId) => {
+    if (!user) return;
+    try {
+      const res = await api.sendConnectionRequest(user.email, studentId);
+      if (res.success) {
+        showToast(`🎉 Connection request sent to ${res.receiver?.name || 'peer'}!`);
+        if (res.sender) {
+          updateUserProfile(res.sender);
+        }
+        setStudents((prev) =>
+          prev.map((s) => (s._id === studentId ? { ...s, ...res.receiver } : s))
+        );
+      }
+    } catch (err) {
+      showToast('❌ ' + (err.message || 'Failed to send connection request'));
     }
   };
 
@@ -119,39 +142,82 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
     }
   };
 
-  // Quick skill filter list
-  const popularSkills = [
+  const branches = ['All', 'CSE', 'ECE', 'MECH', 'EEE', 'CIVIL'];
+
+  const realSkillsList = [
     'All',
-    'React',
-    'Node.js',
-    'Python',
-    'Machine Learning',
-    'UI/UX Design',
-    'TypeScript',
-    'Docker',
-    'DevOps',
+    'Frontend',
+    'Backend',
+    'Full-Stack',
+    'Machine Learning (ML)',
+    'Artificial Intelligence (AI)',
+    'Data Science',
+    'DevOps & Cloud',
     'Cybersecurity',
+    'UI/UX Design',
   ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2 text-xs font-semibold animate-in slide-in-from-bottom-5 duration-200">
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* Main 3-Column LinkedIn Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ================= LEFT COLUMN (Profile & Quick Filters) ================= */}
+        {/* ================= LEFT COLUMN ================= */}
         <aside className="lg:col-span-3 space-y-4">
           <ProfileSidebar onEditProfile={onEditProfile} />
 
-          {/* Quick Skill Filter Card */}
+          {/* Filter by Engineering Branch (CSE, ECE, MECH, EEE, CIVIL) */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2 flex items-center justify-between">
-              <span>Filter by Skill</span>
+              <span className="flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-[#0a66c2]" />
+                Filter by Branch
+              </span>
+              {selectedBranch !== 'all' && (
+                <button
+                  onClick={() => setSelectedBranch('all')}
+                  className="text-[10px] text-[#0a66c2] hover:underline normal-case cursor-pointer font-semibold"
+                >
+                  Reset
+                </button>
+              )}
+            </h4>
+            <div className="flex flex-wrap gap-1.5">
+              {branches.map((b) => {
+                const isActive =
+                  selectedBranch.toUpperCase() === b.toUpperCase();
+                return (
+                  <button
+                    key={b}
+                    onClick={() =>
+                      setSelectedBranch(b === 'All' ? 'all' : b)
+                    }
+                    className={`text-xs px-2.5 py-1 rounded-md transition-all cursor-pointer font-bold ${
+                      isActive
+                        ? 'bg-[#0a66c2] text-white shadow-2xs'
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    {b}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Filter by Real Skills (Frontend, Backend, ML, etc.) */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 mb-2 flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <Code className="w-3.5 h-3.5 text-purple-600" />
+                Filter Real Skills
+              </span>
               {selectedSkill !== 'all' && (
                 <button
                   onClick={() => setSelectedSkill('all')}
@@ -162,7 +228,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
               )}
             </h4>
             <div className="flex flex-wrap gap-1.5">
-              {popularSkills.map((skill) => {
+              {realSkillsList.map((skill) => {
                 const isActive =
                   selectedSkill.toLowerCase() === skill.toLowerCase();
                 return (
@@ -173,7 +239,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
                     }
                     className={`text-xs px-2.5 py-1 rounded-md transition-all cursor-pointer font-medium ${
                       isActive
-                        ? 'bg-[#0a66c2] text-white shadow-2xs'
+                        ? 'bg-purple-600 text-white shadow-2xs'
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                     }`}
                   >
@@ -184,22 +250,22 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
             </div>
           </div>
 
-          {/* Collegiate Community Card */}
+          {/* HackMate Community Highlights Card */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs text-xs text-gray-600">
             <h4 className="font-bold text-gray-900 mb-1 flex items-center gap-1.5">
               <TrendingUp className="w-4 h-4 text-emerald-600" />
-              Collegiate Network Highlights
+              HackMate Network Highlights
             </h4>
             <p className="text-[11px] text-gray-500 leading-relaxed mb-3">
-              Explore profiles with uploaded skills, like student achievements, and form teams for regional hackathons.
+              Match by branches (CSE, ECE, MECH, EEE, CIVIL), filter real skills (Frontend, Backend, ML), and chat directly to build winning teams.
             </p>
             <div className="space-y-1 text-[11px]">
               <div className="flex justify-between py-0.5">
-                <span className="text-gray-500">Active Students:</span>
+                <span className="text-gray-500">Active Hackers:</span>
                 <span className="font-semibold text-gray-800">{students.length}</span>
               </div>
               <div className="flex justify-between py-0.5">
-                <span className="text-gray-500">Upcoming Hackathons:</span>
+                <span className="text-gray-500">Open Hackathons:</span>
                 <span className="font-semibold text-gray-800">{hackathons.length}</span>
               </div>
             </div>
@@ -208,7 +274,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
 
         {/* ================= CENTER COLUMN (Feed of Students with Skills) ================= */}
         <main className="lg:col-span-6 space-y-4">
-          {/* Top "Showcase Skills" Share Box (LinkedIn Style) */}
+          {/* Top "Showcase Skills" Share Box */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs">
             <div className="flex items-center gap-3">
               <img
@@ -225,7 +291,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
                 onClick={onEditProfile}
                 className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs sm:text-sm font-medium rounded-full text-left transition-colors cursor-pointer border border-gray-200"
               >
-                Upload new skills or update your collegiate profile...
+                Upload your real skills or update your branch & profile...
               </button>
             </div>
 
@@ -234,21 +300,22 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
                 onClick={onEditProfile}
                 className="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer font-medium text-gray-700"
               >
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Add Skill</span>
+                <Code className="w-4 h-4 text-[#0a66c2]" />
+                <span>Add Real Skills</span>
               </button>
 
               <button
                 onClick={onEditProfile}
                 className="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer font-medium text-gray-700"
               >
-                <Flame className="w-4 h-4 text-blue-500" />
-                <span>Update Photo</span>
+                <Layers className="w-4 h-4 text-purple-600" />
+                <span>Select Branch</span>
               </button>
 
               <button
                 onClick={() => {
                   setSelectedSkill('all');
+                  setSelectedBranch('all');
                   setSearchQuery('');
                   fetchData();
                 }}
@@ -264,17 +331,18 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-gray-900">
-                Student Directory Feed
+                Peer Directory Feed
               </h2>
               <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-medium">
-                {students.length} students
+                {students.length} peers
               </span>
             </div>
 
-            {(selectedSkill !== 'all' || searchQuery) && (
+            {(selectedSkill !== 'all' || selectedBranch !== 'all' || searchQuery) && (
               <button
                 onClick={() => {
                   setSelectedSkill('all');
+                  setSelectedBranch('all');
                   setSearchQuery('');
                 }}
                 className="text-xs text-[#0a66c2] hover:underline font-semibold cursor-pointer"
@@ -289,7 +357,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-xs">
               <RefreshCw className="w-6 h-6 text-[#0a66c2] animate-spin mx-auto mb-2" />
               <p className="text-xs text-gray-500 font-medium">
-                Fetching student profiles and skill updates...
+                Fetching HackMate profiles and skills...
               </p>
             </div>
           ) : students.length === 0 ? (
@@ -300,16 +368,17 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
               </div>
               <h3 className="text-base font-bold text-gray-900">No students found</h3>
               <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
-                No students match your search criteria. Try clearing the filter or search for other skills like "React", "Python", or "Machine Learning".
+                No students match your selected filters. Try switching the branch or clearing the skill filter!
               </p>
               <button
                 onClick={() => {
                   setSelectedSkill('all');
+                  setSelectedBranch('all');
                   setSearchQuery('');
                 }}
                 className="mt-4 px-4 py-2 bg-[#0a66c2] text-white rounded-full text-xs font-semibold hover:bg-[#004182] transition-colors cursor-pointer"
               >
-                Reset Search
+                Reset Filters
               </button>
             </div>
           ) : (
@@ -318,16 +387,18 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
               <StudentCard
                 key={student._id}
                 student={student}
-                currentEmail={user?.email}
+                currentUser={user}
                 onToggleLike={handleToggleLike}
                 onSelectSkill={(skill) => setSelectedSkill(skill)}
-                onOpenConnect={(st) => setSelectedStudentForConnect(st)}
+                onSelectBranch={(branch) => setSelectedBranch(branch)}
+                onOpenChat={(st) => setSelectedStudentForChat(st)}
+                onSendConnectionRequest={handleSendConnectionRequest}
               />
             ))
           )}
         </main>
 
-        {/* ================= RIGHT COLUMN (Hackathon Sessions Section) ================= */}
+        {/* ================= RIGHT COLUMN (Hackathon Radar) ================= */}
         <aside className="lg:col-span-3 space-y-4">
           <HackathonSection
             hackathons={hackathons}
@@ -348,11 +419,12 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
         />
       )}
 
-      {/* Connect / Contact Modal */}
-      {selectedStudentForConnect && (
-        <ConnectModal
-          student={selectedStudentForConnect}
-          onClose={() => setSelectedStudentForConnect(null)}
+      {/* Direct Chatbox Modal (Replaces phone number view!) */}
+      {selectedStudentForChat && (
+        <ChatModal
+          recipient={selectedStudentForChat}
+          currentUser={user}
+          onClose={() => setSelectedStudentForChat(null)}
         />
       )}
     </div>

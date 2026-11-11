@@ -6,7 +6,7 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
-      const stored = localStorage.getItem('student_nexus_user');
+      const stored = localStorage.getItem('hackmate_user');
       return stored ? JSON.parse(stored) : null;
     } catch {
       return null;
@@ -14,38 +14,52 @@ export const AuthProvider = ({ children }) => {
   });
 
   const [pendingEmail, setPendingEmail] = useState(() => {
-    return localStorage.getItem('student_nexus_pending_email') || '';
+    return localStorage.getItem('hackmate_pending_email') || '';
+  });
+
+  const [pendingPassword, setPendingPassword] = useState(() => {
+    return localStorage.getItem('hackmate_pending_password') || '';
   });
 
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      localStorage.setItem('student_nexus_user', JSON.stringify(user));
+      localStorage.setItem('hackmate_user', JSON.stringify(user));
     } else {
-      localStorage.removeItem('student_nexus_user');
+      localStorage.removeItem('hackmate_user');
     }
   }, [user]);
 
   useEffect(() => {
     if (pendingEmail) {
-      localStorage.setItem('student_nexus_pending_email', pendingEmail);
+      localStorage.setItem('hackmate_pending_email', pendingEmail);
     } else {
-      localStorage.removeItem('student_nexus_pending_email');
+      localStorage.removeItem('hackmate_pending_email');
     }
   }, [pendingEmail]);
 
-  const loginWithEmail = async (email) => {
+  useEffect(() => {
+    if (pendingPassword) {
+      localStorage.setItem('hackmate_pending_password', pendingPassword);
+    } else {
+      localStorage.removeItem('hackmate_pending_password');
+    }
+  }, [pendingPassword]);
+
+  const loginWithCredentials = async (email, password) => {
     setLoading(true);
     try {
-      const result = await api.login(email);
+      const result = await api.login(email, password);
       if (result.isNewUser) {
         setPendingEmail(result.email);
+        setPendingPassword(result.password || password);
         setUser(null);
         return { isNewUser: true, email: result.email };
       } else {
         setUser(result.user);
         setPendingEmail('');
+        setPendingPassword('');
         return { isNewUser: false, user: result.user };
       }
     } finally {
@@ -59,10 +73,12 @@ export const AuthProvider = ({ children }) => {
       const dataToSave = {
         ...formData,
         email: formData.email || pendingEmail,
+        password: formData.password || pendingPassword || 'password123',
       };
       const result = await api.onboard(dataToSave);
       setUser(result.user);
       setPendingEmail('');
+      setPendingPassword('');
       return result.user;
     } finally {
       setLoading(false);
@@ -76,8 +92,10 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setPendingEmail('');
-    localStorage.removeItem('student_nexus_user');
-    localStorage.removeItem('student_nexus_pending_email');
+    setPendingPassword('');
+    localStorage.removeItem('hackmate_user');
+    localStorage.removeItem('hackmate_pending_email');
+    localStorage.removeItem('hackmate_pending_password');
   };
 
   return (
@@ -85,9 +103,11 @@ export const AuthProvider = ({ children }) => {
       value={{
         user,
         pendingEmail,
+        pendingPassword,
         setPendingEmail,
+        setPendingPassword,
         loading,
-        loginWithEmail,
+        loginWithCredentials,
         completeOnboarding,
         updateUserProfile,
         logout,

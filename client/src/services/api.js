@@ -1,15 +1,18 @@
-// API client for communicating with StudentNexus backend
+// API client for communicating with HackMate backend
 const API_BASE = '/api';
 
 export const api = {
-  // Login with email
-  login: async (email) => {
+  // Login with email & password
+  login: async (email, password) => {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
-    if (!res.ok) throw new Error('Login failed');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Login failed. Please check your credentials.');
+    }
     return res.json();
   },
 
@@ -27,12 +30,13 @@ export const api = {
     return res.json();
   },
 
-  // Fetch student profiles
+  // Fetch student profiles with branch, skill, and search filters
   getStudents: async (params = {}) => {
     const query = new URLSearchParams();
     if (params.q) query.set('q', params.q);
     if (params.skill && params.skill !== 'all') query.set('skill', params.skill);
     if (params.college && params.college !== 'all') query.set('college', params.college);
+    if (params.branch && params.branch !== 'all') query.set('branch', params.branch);
 
     const url = `${API_BASE}/students${query.toString() ? `?${query.toString()}` : ''}`;
     const res = await fetch(url);
@@ -48,6 +52,39 @@ export const api = {
       body: JSON.stringify({ userEmail }),
     });
     if (!res.ok) throw new Error('Failed to toggle like');
+    return res.json();
+  },
+
+  // Connection Requests
+  sendConnectionRequest: async (fromEmail, targetStudentId) => {
+    const res = await fetch(`${API_BASE}/connections/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromEmail, targetStudentId }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to send connection request');
+    }
+    return res.json();
+  },
+
+  // Chatbox Direct Messages
+  getMessages: async (user1, user2) => {
+    const res = await fetch(
+      `${API_BASE}/messages?user1=${encodeURIComponent(user1)}&user2=${encodeURIComponent(user2)}`
+    );
+    if (!res.ok) throw new Error('Failed to fetch messages');
+    return res.json();
+  },
+
+  sendMessage: async (senderEmail, receiverEmail, text) => {
+    const res = await fetch(`${API_BASE}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderEmail, receiverEmail, text }),
+    });
+    if (!res.ok) throw new Error('Failed to send message');
     return res.json();
   },
 
