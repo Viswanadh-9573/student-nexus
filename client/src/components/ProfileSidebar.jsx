@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, GraduationCap, Heart, Users, Edit3 } from 'lucide-react';
+import { MapPin, GraduationCap, Heart, Users, Edit3, Trophy, Award } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const BRANCH_COLORS = {
@@ -10,7 +10,7 @@ const BRANCH_COLORS = {
   CIVIL: 'bg-emerald-100 text-emerald-700 border-emerald-200',
 };
 
-export const ProfileSidebar = ({ onEditProfile }) => {
+export const ProfileSidebar = ({ onEditProfile, onAddAchievement }) => {
   const { user } = useAuth();
 
   if (!user) return null;
@@ -87,6 +87,24 @@ export const ProfileSidebar = ({ onEditProfile }) => {
           </span>
           <span className="font-semibold text-gray-800">{user.likesCount || 0}</span>
         </div>
+        <div className="flex justify-between items-center py-1">
+          <span className="text-gray-500 font-medium flex items-center gap-1">
+            <Trophy className="w-3.5 h-3.5 text-amber-500" />
+            Achievements
+          </span>
+          <span className="font-semibold text-amber-600">
+            {user.achievements?.length || 0}
+          </span>
+        </div>
+        <div className="flex justify-between items-center py-1">
+          <span className="text-gray-500 font-medium flex items-center gap-1">
+            <Award className="w-3.5 h-3.5 text-blue-500" />
+            Certificates
+          </span>
+          <span className="font-semibold text-blue-600">
+            {user.certificates?.length || 0}
+          </span>
+        </div>
       </div>
 
       {/* User Skills list */}
@@ -121,6 +139,13 @@ export const ProfileSidebar = ({ onEditProfile }) => {
         >
           <Edit3 className="w-3.5 h-3.5 text-gray-500" />
           Update Branch & Skills
+        </button>
+        <button
+          onClick={onAddAchievement}
+          className="mt-2 w-full py-1.5 px-3 rounded-full border border-amber-300 hover:border-amber-400 hover:bg-amber-50 text-xs font-semibold text-amber-700 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+        >
+          <Trophy className="w-3.5 h-3.5 text-amber-500" />
+          Add Achievement / Certificate
         </button>
       </div>
     </div>

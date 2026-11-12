@@ -106,4 +106,48 @@ export const api = {
     if (!res.ok) throw new Error('Failed to register for hackathon');
     return res.json();
   },
+
+  // Achievements
+  addAchievement: async (email, achievementData) => {
+    const res = await fetch(`${API_BASE}/students/${encodeURIComponent(email)}/achievements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(achievementData),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to add achievement');
+    }
+    return res.json();
+  },
+
+  deleteAchievement: async (email, achievementId) => {
+    const res = await fetch(`${API_BASE}/students/${encodeURIComponent(email)}/achievements/${achievementId}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete achievement');
+    return res.json();
+  },
+
+  // Certificates
+  addCertificate: async (email, certData) => {
+    const res = await fetch(`${API_BASE}/students/${encodeURIComponent(email)}/certificates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(certData),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to upload certificate');
+    }
+    return res.json();
+  },
+
+  deleteCertificate: async (email, certId) => {
+    const res = await fetch(`${API_BASE}/students/${encodeURIComponent(email)}/certificates/${certId}`, {
+      method: 'DELETE',
+    });
+    if (!res.ok) throw new Error('Failed to delete certificate');
+    return res.json();
+  },
 };

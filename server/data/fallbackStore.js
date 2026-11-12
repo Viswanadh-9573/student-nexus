@@ -24,6 +24,8 @@ const initialStudents = [
     connections: ['priya.sharma@columbia.edu'],
     pendingRequests: [],
     sentRequests: [],
+    achievements: [],
+    certificates: [],
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
   },
   {
@@ -43,6 +45,8 @@ const initialStudents = [
     connections: ['alex.rivera@nyu.edu'],
     pendingRequests: [],
     sentRequests: [],
+    achievements: [],
+    certificates: [],
     createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
   },
   {
@@ -62,6 +66,8 @@ const initialStudents = [
     connections: [],
     pendingRequests: [],
     sentRequests: [],
+    achievements: [],
+    certificates: [],
     createdAt: new Date(Date.now() - 86400000 * 6).toISOString(),
   },
   {
@@ -81,6 +87,8 @@ const initialStudents = [
     connections: [],
     pendingRequests: [],
     sentRequests: [],
+    achievements: [],
+    certificates: [],
     createdAt: new Date(Date.now() - 86400000 * 8).toISOString(),
   },
   {
@@ -100,6 +108,8 @@ const initialStudents = [
     connections: [],
     pendingRequests: [],
     sentRequests: [],
+    achievements: [],
+    certificates: [],
     createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
   },
   {
@@ -119,6 +129,8 @@ const initialStudents = [
     connections: [],
     pendingRequests: [],
     sentRequests: [],
+    achievements: [],
+    certificates: [],
     createdAt: new Date(Date.now() - 86400000 * 12).toISOString(),
   },
 ];
@@ -449,6 +461,40 @@ class FallbackStore {
       this.save();
     }
     return hackathon;
+  }
+
+  addAchievement(email, achievement) {
+    const student = this.getStudentByEmail(email);
+    if (!student) return null;
+    if (!student.achievements) student.achievements = [];
+    student.achievements.push(achievement);
+    this.save();
+    return student;
+  }
+
+  removeAchievement(email, achievementId) {
+    const student = this.getStudentByEmail(email);
+    if (!student) return null;
+    student.achievements = (student.achievements || []).filter(a => a.id !== achievementId);
+    this.save();
+    return student;
+  }
+
+  addCertificate(email, certificate) {
+    const student = this.getStudentByEmail(email);
+    if (!student) return null;
+    if (!student.certificates) student.certificates = [];
+    student.certificates.push(certificate);
+    this.save();
+    return student;
+  }
+
+  removeCertificate(email, certId) {
+    const student = this.getStudentByEmail(email);
+    if (!student) return null;
+    student.certificates = (student.certificates || []).filter(c => c.id !== certId);
+    this.save();
+    return student;
   }
 }
 

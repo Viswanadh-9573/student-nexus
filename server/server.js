@@ -397,6 +397,115 @@ app.post('/api/hackathons/:id/register', async (req, res) => {
   }
 });
 
+// 7. Achievements Routes
+app.post('/api/students/:email/achievements', async (req, res) => {
+  try {
+    const email = req.params.email.toLowerCase();
+    const { title, description, date, emoji } = req.body;
+    if (!title) return res.status(400).json({ error: 'Title is required' });
+
+    const achievement = {
+      id: new mongoose.Types.ObjectId().toString(),
+      title: title.trim(),
+      description: (description || '').trim(),
+      date: (date || '').trim(),
+      emoji: emoji || '🏆',
+      postedAt: new Date(),
+    };
+
+    if (isMongoConnected) {
+      const user = await User.findOne({ email });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      user.achievements.push(achievement);
+      await user.save();
+      return res.status(201).json({ success: true, achievement, user });
+    } else {
+      const result = fallbackStore.addAchievement(email, achievement);
+      if (!result) return res.status(404).json({ error: 'User not found' });
+      return res.status(201).json({ success: true, achievement, user: result });
+    }
+  } catch (error) {
+    console.error('Add achievement error:', error);
+    res.status(500).json({ error: 'Failed to add achievement' });
+  }
+});
+
+app.post('/api/students/:email/certificates', async (req, res) => {
+  try {
+    const email = req.params.email.toLowerCase();
+    const { title, issuer, date, fileData, fileType } = req.body;
+    if (!title) return res.status(400).json({ error: 'Certificate title is required' });
+    if (!fileData) return res.status(400).json({ error: 'Certificate file is required' });
+
+    const certificate = {
+      id: new mongoose.Types.ObjectId().toString(),
+      title: title.trim(),
+      issuer: (issuer || '').trim(),
+      date: (date || '').trim(),
+      fileData,
+      fileType: fileType || 'image',
+      uploadedAt: new Date(),
+    };
+
+    if (isMongoConnected) {
+      const user = await User.findOne({ email });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      user.certificates.push(certificate);
+      await user.save();
+      return res.status(201).json({ success: true, certificate, user });
+    } else {
+      const result = fallbackStore.addCertificate(email, certificate);
+      if (!result) return res.status(404).json({ error: 'User not found' });
+      return res.status(201).json({ success: true, certificate, user: result });
+    }
+  } catch (error) {
+    console.error('Add certificate error:', error);
+    res.status(500).json({ error: 'Failed to add certificate' });
+  }
+});
+
+app.delete('/api/students/:email/achievements/:achievementId', async (req, res) => {
+  try {
+    const email = req.params.email.toLowerCase();
+    const { achievementId } = req.params;
+
+    if (isMongoConnected) {
+      const user = await User.findOne({ email });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      user.achievements = user.achievements.filter(a => a.id !== achievementId);
+      await user.save();
+      return res.json({ success: true, user });
+    } else {
+      const result = fallbackStore.removeAchievement(email, achievementId);
+      if (!result) return res.status(404).json({ error: 'User not found' });
+      return res.json({ success: true, user: result });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete achievement' });
+  }
+});
+
+app.delete('/api/students/:email/certificates/:certId', async (req, res) => {
+  try {
+    const email = req.params.email.toLowerCase();
+    const { certId } = req.params;
+
+    if (isMongoConnected) {
+      const user = await User.findOne({ email });
+      if (!user) return res.status(404).json({ error: 'User not found' });
+      user.certificates = user.certificates.filter(c => c.id !== certId);
+      await user.save();
+      return res.json({ success: true, user });
+    } else {
+      const result = fallbackStore.removeCertificate(email, certId);
+      if (!result) return res.status(404).json({ error: 'User not found' });
+      return res.json({ success: true, user: result });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete certificate' });
+  }
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({

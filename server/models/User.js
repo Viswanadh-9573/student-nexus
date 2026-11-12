@@ -69,6 +69,29 @@ const userSchema = new mongoose.Schema(
       type: [String], // Array of user emails this user sent request to
       default: [],
     },
+    certificates: {
+      type: [{
+        id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+        title: { type: String, required: true },
+        issuer: { type: String, default: '' },
+        date: { type: String, default: '' },
+        fileData: { type: String, default: '' }, // base64 data URL
+        fileType: { type: String, default: 'image' }, // 'image' or 'pdf'
+        uploadedAt: { type: Date, default: Date.now },
+      }],
+      default: [],
+    },
+    achievements: {
+      type: [{
+        id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+        title: { type: String, required: true },
+        description: { type: String, default: '' },
+        date: { type: String, default: '' },
+        emoji: { type: String, default: '🏆' },
+        postedAt: { type: Date, default: Date.now },
+      }],
+      default: [],
+    },
   },
   {
     timestamps: true,

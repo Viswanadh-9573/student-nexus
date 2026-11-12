@@ -9,6 +9,9 @@ import {
   Clock,
   CheckCircle2,
   Sparkles,
+  Trophy,
+  Award,
+  FileText,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -219,6 +222,72 @@ export const StudentCard = ({
             )}
           </div>
         </div>
+
+        {/* Achievements Section */}
+        {student.achievements && student.achievements.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                Achievements:
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {student.achievements.slice(0, 3).map((ach) => (
+                <div key={ach.id} className="flex items-start gap-2 p-2 bg-amber-50/70 border border-amber-100 rounded-lg">
+                  <span className="text-base shrink-0">{ach.emoji}</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-gray-800 leading-tight">{ach.title}</p>
+                    {ach.description && (
+                      <p className="text-[11px] text-gray-500 mt-0.5 line-clamp-1">{ach.description}</p>
+                    )}
+                    {ach.date && <p className="text-[10px] text-gray-400">{ach.date}</p>}
+                  </div>
+                </div>
+              ))}
+              {student.achievements.length > 3 && (
+                <p className="text-[11px] text-gray-400 pl-1">+{student.achievements.length - 3} more achievements</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Certificates Section */}
+        {student.certificates && student.certificates.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-1.5 mb-2">
+              <Award className="w-3.5 h-3.5 text-blue-600" />
+              <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                Certificates ({student.certificates.length}):
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {student.certificates.slice(0, 3).map((cert) => (
+                <div key={cert.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-xs">
+                  {cert.fileType === 'image' ? (
+                    <img
+                      src={cert.fileData}
+                      alt={cert.title}
+                      className="w-full h-14 object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-14 bg-red-50 flex flex-col items-center justify-center gap-0.5">
+                      <FileText className="w-5 h-5 text-red-400" />
+                      <span className="text-[9px] text-red-400 font-medium">PDF</span>
+                    </div>
+                  )}
+                  <div className="p-1.5">
+                    <p className="text-[10px] font-semibold text-gray-800 line-clamp-1">{cert.title}</p>
+                    {cert.issuer && <p className="text-[9px] text-gray-500 line-clamp-1">{cert.issuer}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {student.certificates.length > 3 && (
+              <p className="text-[11px] text-gray-400 mt-1 pl-1">+{student.certificates.length - 3} more certificates</p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Social / Interaction Bar */}

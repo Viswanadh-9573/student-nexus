@@ -13,6 +13,7 @@ import {
   Code,
   Layers,
   MessageSquare,
+  Trophy,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -21,6 +22,7 @@ import { StudentCard } from '../components/StudentCard';
 import { HackathonSection } from '../components/HackathonSection';
 import { HackathonModal } from '../components/HackathonModal';
 import { ChatModal } from '../components/ChatModal';
+import { AchievementsModal } from '../components/AchievementsModal';
 
 export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
   const { user, updateUserProfile } = useAuth();
@@ -35,6 +37,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
   // Modals state
   const [selectedHackathon, setSelectedHackathon] = useState(null);
   const [selectedStudentForChat, setSelectedStudentForChat] = useState(null);
+  const [showAchievementsModal, setShowAchievementsModal] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   const showToast = (msg) => {
@@ -170,7 +173,7 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* ================= LEFT COLUMN ================= */}
         <aside className="lg:col-span-3 space-y-4">
-          <ProfileSidebar onEditProfile={onEditProfile} />
+          <ProfileSidebar onEditProfile={onEditProfile} onAddAchievement={() => setShowAchievementsModal(true)} />
 
           {/* Filter by Engineering Branch (CSE, ECE, MECH, EEE, CIVIL) */}
           <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-xs">
@@ -313,6 +316,14 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
               </button>
 
               <button
+                onClick={() => setShowAchievementsModal(true)}
+                className="flex items-center gap-1.5 px-2 py-1 hover:bg-gray-100 rounded-md transition-colors cursor-pointer font-medium text-gray-700"
+              >
+                <Trophy className="w-4 h-4 text-amber-500" />
+                <span>Add Achievement</span>
+              </button>
+
+              <button
                 onClick={() => {
                   setSelectedSkill('all');
                   setSelectedBranch('all');
@@ -425,6 +436,16 @@ export const HomePage = ({ onEditProfile, initialSearch = '' }) => {
           recipient={selectedStudentForChat}
           currentUser={user}
           onClose={() => setSelectedStudentForChat(null)}
+        />
+      )}
+
+      {/* Achievements & Certificates Modal */}
+      {showAchievementsModal && (
+        <AchievementsModal
+          onClose={() => setShowAchievementsModal(false)}
+          onUpdate={(updatedUser) => {
+            setStudents(prev => prev.map(s => s.email === updatedUser.email ? { ...s, ...updatedUser } : s));
+          }}
         />
       )}
     </div>
